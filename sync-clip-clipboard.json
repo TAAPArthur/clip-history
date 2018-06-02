@@ -1,0 +1,9 @@
+{
+    "paths":["/home/arthur/Documents/Clipboard/clipboard"],
+    "actions":[
+        {
+            "events":["MODIFY"],
+            "script":"cat $_PATH | xsel -b"
+        }
+    ]
+}

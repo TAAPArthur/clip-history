@@ -1,0 +1,4 @@
+#!/bin/bash
+post_install() {
+	cp /usr/share/sync-clip/*.json "$(pyinotify-runner -c)"
+}
