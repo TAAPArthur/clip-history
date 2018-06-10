@@ -1,6 +1,6 @@
 #!/bin/bash
 post_install() {
 	echo "installing json files"
+        mkdir -p "$(pyinotify-runner -c)"
 	cp /usr/share/sync-clip/*.json "$(pyinotify-runner -c)"
 }
-echo "script loaded"
