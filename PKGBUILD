@@ -5,9 +5,9 @@ pkgname='sync-clip'
 pkgbase="taapscripts"
 pkgver='0.1'
 _language='en-US'
-pkgrel=2
+pkgrel=3
 pkgdesc='Syncrop clipboard across various devices'
-
+install=$pkgname.install
 arch=('any')
 license=('MIT')
 depends=('python3' 'xsel' 'pyinotify-runner')
