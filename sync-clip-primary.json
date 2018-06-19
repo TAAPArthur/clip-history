@@ -1,5 +1,5 @@
 {
-    "paths":["/home/arthur/Documents/Clipboard/primary"],
+    "paths":["~/Documents/.clipboard/primary"],
     "actions":[
         {
             "events":["MODIFY"],

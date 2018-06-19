@@ -3,7 +3,7 @@
 
 pkgname='sync-clip'
 pkgbase="taapscripts"
-pkgver='0.1'
+pkgver='0.2'
 _language='en-US'
 pkgrel=5
 pkgdesc='Syncrop clipboard across various devices'

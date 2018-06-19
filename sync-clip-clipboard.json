@@ -1,5 +1,6 @@
 {
-    "paths":["/home/arthur/Documents/Clipboard/clipboard"],
+    
+"paths":["~/Documents/.clipboard/clipboard"],
     "actions":[
         {
             "events":["MODIFY"],
