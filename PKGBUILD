@@ -17,4 +17,5 @@ _srcDir="clip-history"
 package() {
     cd "$_srcDir"
     install -D -m 0755 clip-history.sh "$pkgdir/usr/bin/clip-history"
+    install -D -m 0755 clip-history-autocomplete.sh "$pkgdir/etc/bash_completion.d/clip-history-autocomplete"
 }
