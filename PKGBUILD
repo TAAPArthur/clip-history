@@ -1,25 +1,20 @@
 # Maintainer: Arthur Williams <taaparthur@gmail.com>
 
 
-pkgname='sync-clip'
-pkgbase="taapscripts"
-pkgver='0.2'
+pkgname='clip-history'
+pkgver='0.3'
 _language='en-US'
-pkgrel=5
-pkgdesc='Syncrop clipboard across various devices'
-install=$pkgname.install
+pkgrel=0
+pkgdesc='Simply keeps a list of everything copied'
 arch=('any')
 license=('MIT')
-depends=('python3' 'xsel' 'pyinotify-runner')
+depends=('python3' 'xsel' 'python-gobject')
 md5sums=('SKIP')
 
-source=("git://github.com/TAAPArthur/sync-clip.git")
-_srcDir="sync-clip"
+source=("git+https://github.com/TAAPArthur/clip-history.git")
+_srcDir="clip-history"
 
 package() {
     cd "$_srcDir"
-    mkdir -p "$pkgdir/usr/bin/"
-    mkdir -p "$pkgdir/usr/share/$pkgname"
-    install -D -m 0755 sync-clip.py "$pkgdir/usr/bin/sync-clip"
-    install -D -m 0755 *.json "$pkgdir/usr/share/$pkgname"
+    install -D -m 0755 clip-history.sh "$pkgdir/usr/bin/clip-history"
 }

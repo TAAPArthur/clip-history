@@ -1,2 +1,3 @@
-# sync-clip
-Sync clipboard across various devices
+# Clip History
+
+Keeps a list of everything copied.
