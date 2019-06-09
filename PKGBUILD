@@ -2,7 +2,7 @@
 
 
 pkgname='clip-history'
-pkgver='0.3'
+pkgver='0.4'
 _language='en-US'
 pkgrel=0
 pkgdesc='Simply keeps a list of everything copied'
@@ -18,4 +18,5 @@ package() {
     cd "$_srcDir"
     install -D -m 0755 clip-history.sh "$pkgdir/usr/bin/clip-history"
     install -D -m 0755 clip-history-autocomplete.sh "$pkgdir/etc/bash_completion.d/clip-history-autocomplete"
+    install -m 0744 -Dt "$pkgdir/usr/share/man/man1/" clip-history.1
 }
