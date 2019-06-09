@@ -4,6 +4,7 @@ set -e
 export CLIP_HISTORY_DIR=${CLIP_HISTORY:-$HOME/.local/share/clip-history}
 export CLIP_HISTORY_SHOW_CMD=${CLIP_HISTORY_SHOW_CMD:-dmenu}
 mkdir -p $CLIP_HISTORY_DIR
+clipboard=
 
 monitor(){
     cat << EOF | python $*
@@ -27,7 +28,7 @@ def onChange(clipboard, fileName):
                 output="{} {}\n".format(int(time.time()), text.encode("unicode_escape").decode("utf-8"))
                 f.write(output)
                 f.flush()
-                print("{} {}\n".format(int(time.time()), text),end="")
+                print(output,end="")
 
 validClipboards = set()
 for arg in sys.argv[1:]:
@@ -43,13 +44,13 @@ Gtk.main()
 EOF
 }
 merge(){
-    clipboard=${2:-clipboard}
+    clipboard=${1:-clipboard}
     sort $CLIP_HISTORY_DIR/*$clipboard* |uniq >/tmp/clipboard
     rm $CLIP_HISTORY_DIR/*$clipboard*
     mv /tmp/$clipboard $CLIP_HISTORY_DIR/$clipboard
 }
 list(){
-    clipboard=${2:-clipboard}
+    clipboard=${1:-clipboard}
     limit=$3
     if [[ "$limit" -gt 0 ]];then
         tail -n $limit $CLIP_HISTORY_DIR/$clipboard |tac |cut -d" " -f2-
@@ -60,7 +61,7 @@ list(){
     fi
 }
 get(){
-    clipboard=${2:-clipboard}
+    clipboard=${1:-clipboard}
     num=${3:1}
     if [[ "$num" -gt 0 ]];then
         tail -n $num $CLIP_HISTORY_DIR/$clipboard |head -n1 |cut -d" " -f2-
@@ -88,5 +89,7 @@ case $1 in
         ;;
     select)
         shift
-        list $* | $CLIP_HISTORY_SHOW_CMD |xsel -n -i --$clipboard
+        clipboard=${1:-clipboard}
+        echo -e $(list $* | $CLIP_HISTORY_SHOW_CMD) |xsel -i --$clipboard
+        xsel --clipboard
 esac
