@@ -34,6 +34,7 @@
 #MAN generated with help2man -No clip-history.1 ./clip-history.sh
 
 set -e
+set -o pipefail
 export CLIP_HISTORY_DIR=${CLIP_HISTORY:-$HOME/.local/share/clip-history}
 export CLIP_HISTORY_SHOW_CMD=${CLIP_HISTORY_SHOW_CMD:-dmenu}
 mkdir -p $CLIP_HISTORY_DIR
@@ -137,6 +138,6 @@ case $1 in
     select)
         shift
         clipboard=${1:-clipboard}
-        echo -e $(list $* | $CLIP_HISTORY_SHOW_CMD) |xsel -i --$clipboard
+        echo -en $(list $* | $CLIP_HISTORY_SHOW_CMD) |xsel -i --$clipboard
         xsel --clipboard
 esac

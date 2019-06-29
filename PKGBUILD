@@ -2,7 +2,7 @@
 
 
 pkgname='clip-history'
-pkgver='0.4'
+pkgver='0.5'
 _language='en-US'
 pkgrel=0
 pkgdesc='Simply keeps a list of everything copied'
