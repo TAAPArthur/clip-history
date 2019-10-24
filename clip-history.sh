@@ -12,6 +12,7 @@
 #%
 #%Action:
 #%Note: All actions take an option argument specifying which clipboard to use (the default is clipboard)
+#%    filter-long [NUM_CHARS]       Removes all entries with more than NUM_CHARS characters
 #%    get      i                    get the element at the given index from the specified clipboard. Index 1 is the most recent and -1 the least recent
 #%    list     i                    lists the last i element (if i is negative list the first i elements)
 #%    merge                         combine all files matching *clipboard* in $CLIP_HISTORY_DIR into clipboard
@@ -104,6 +105,12 @@ get(){
         head -n $((-num)) $CLIP_HISTORY_DIR/$clipboard | tail -n1 |cut -d" " -f2-
     fi
 }
+filterLong(){
+    num=${1:-80}
+    set -xe
+    grep --text -E "^[0-9]* .{,$num}$" $CLIP_HISTORY_DIR/$clipboard
+    sed -Ei "/^[0-9]* .{,$num}$/!d" $CLIP_HISTORY_DIR/$clipboard
+}
 displayHelp(){
     SCRIPT_HEADSIZE=$(head -200 ${0} |grep -n "^# END_OF_HEADER" | cut -f1 -d:)
     SCRIPT_NAME="$(basename ${0})"
@@ -137,6 +144,10 @@ case $1 in
     get)
         shift
         get $*
+        ;;
+    filter-long)
+        shift
+        filterLong $*
         ;;
     list)
         shift
