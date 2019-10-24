@@ -168,6 +168,6 @@ case $1 in
         ;;
     select)
         shift
-        echo -en $(list $* | $CLIP_HISTORY_SHOW_CMD) |xsel -i --$clipboard
+        echo -en $(list $* | $CLIP_HISTORY_SHOW_CMD) | tr -d '\n' | xsel -i --$clipboard
         xsel --$clipboard
 esac
