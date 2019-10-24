@@ -12,6 +12,7 @@
 #%
 #%Action:
 #%Note: All actions take an option argument specifying which clipboard to use (the default is clipboard)
+#%    dedup                         Removes duplicates by keeping the latest entry
 #%    filter-long [NUM_CHARS]       Removes all entries with more than NUM_CHARS characters
 #%    get      i                    get the element at the given index from the specified clipboard. Index 1 is the most recent and -1 the least recent
 #%    list     i                    lists the last i element (if i is negative list the first i elements)
@@ -87,6 +88,14 @@ merge(){
     rm $CLIP_HISTORY_DIR/*$clipboard*
     mv /tmp/$clipboard $CLIP_HISTORY_DIR/$clipboard
 }
+dedup(){
+    cp $CLIP_HISTORY_DIR/$clipboard /tmp/$clipboard
+    entries=$(wc -l $CLIP_HISTORY_DIR/$clipboard | cut -d" " -f1)
+    tac $CLIP_HISTORY_DIR/$clipboard | sort -k2 -u |sort > $CLIP_HISTORY_DIR/$clipboard.tmp
+    mv $CLIP_HISTORY_DIR/$clipboard.tmp $CLIP_HISTORY_DIR/$clipboard
+    newEntries=$(wc -l $CLIP_HISTORY_DIR/$clipboard | cut -d" " -f1)
+    echo "removed $((entries - $newEntries)) entries ($entries - $newEntries)"
+}
 list(){
     limit=$1
     if [[ "$limit" -gt 0 ]];then
@@ -140,6 +149,10 @@ case $1 in
     merge)
         shift
         merge $*
+        ;;
+    dedup)
+        shift
+        dedup
         ;;
     get)
         shift
