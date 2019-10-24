@@ -126,7 +126,7 @@ displayHelp(){
     head -${SCRIPT_HEADSIZE:-99} ${0} | grep -e "^#[%+]" | sed -e "s/^#[%+-]//g" -e "s/\${SCRIPT_NAME}/${SCRIPT_NAME}/g" ;
 }
 displayVersion(){
-    echo "0.4.0"
+    echo "0.6.0"
 }
 clipboard=${CLIPBOARD:-clipboard}
 case $1 in

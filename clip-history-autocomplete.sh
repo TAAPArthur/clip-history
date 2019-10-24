@@ -9,7 +9,7 @@ _cliphistoryAutocomplete ()   #  By convention, the function name
     cur=${COMP_WORDS[COMP_CWORD]}
 
     if [[ "$COMP_CWORD" -lt 2 ]]; then
-        COMPREPLY=( $( compgen -W "monitor merge list show get" -- $cur ) )
+        COMPREPLY=( $( compgen -W "dedup filter-long monitor merge list show get" -- $cur ) )
     fi
     return 0
 }

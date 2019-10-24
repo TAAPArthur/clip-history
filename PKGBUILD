@@ -1,11 +1,11 @@
-# Maintainer: Arthur Williams <taaparthur@gmail.com>
+# Maintainer: Arthur Williams <taaparthur at gmail dot com>
 
 
 pkgname='clip-history'
-pkgver='0.5'
+pkgver='0.6'
 _language='en-US'
 pkgrel=0
-pkgdesc='Simply keeps a list of everything copied'
+pkgdesc='A clipboard manager that simply keeps a list of everything copied'
 arch=('any')
 license=('MIT')
 depends=('python3' 'xsel' 'python-gobject')
@@ -16,7 +16,5 @@ _srcDir="clip-history"
 
 package() {
     cd "$_srcDir"
-    install -D -m 0755 clip-history.sh "$pkgdir/usr/bin/clip-history"
-    install -D -m 0755 clip-history-autocomplete.sh "$pkgdir/etc/bash_completion.d/clip-history-autocomplete"
-    install -m 0744 -Dt "$pkgdir/usr/share/man/man1/" clip-history.1
+    make DESTDIR=$pkgdir install
 }
