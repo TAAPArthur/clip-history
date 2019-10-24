@@ -2,17 +2,21 @@
 #================================================================
 # HEADER
 #================================================================
-#%Usage: ${SCRIPT_NAME} ACTION [clipboard, primary or secondary]
+#%Usage: ${SCRIPT_NAME} [CLIPBOARD] ACTION
 #% Clipboard history recorder
 #%
+#%CLIPBOARD:
+#% --primary
+#% --secondary
+#% --clipboard (default)
 #%
 #%Action:
 #%Note: All actions take an option argument specifying which clipboard to use (the default is clipboard)
-#%    get     [clipboard] i       get the element at the given index from the specified clipboard. Index 1 is the most recent and -1 the least recent
-#%    list    [clipboard] i       lists the last i element (if i is negative list the first i elements)
-#%    merge   [clipboard]         combine all files matching *clipboard* in $CLIP_HISTORY_DIR into clipboard
-#%    monitor [clipboard]         listen for changes to the specified clipboards. Clipboards should be space separated
-#%    select  [clipboard]         Using $CLIP_HISTORY_SHOW_CMD, let the user interactively select a history element. This element is printed and added to the corresponding selection
+#%    get      i                    get the element at the given index from the specified clipboard. Index 1 is the most recent and -1 the least recent
+#%    list     i                    lists the last i element (if i is negative list the first i elements)
+#%    merge                         combine all files matching *clipboard* in $CLIP_HISTORY_DIR into clipboard
+#%    monitor                       listen for changes to the specified clipboards. Clipboards should be space separated
+#%    select                        Using $CLIP_HISTORY_SHOW_CMD, let the user interactively select a history element. This element is printed and added to the corresponding selection
 #%    -h, --help                    Print this help
 #%    -v, --version                 Print script information
 #%
@@ -78,14 +82,12 @@ Gtk.main()
 EOF
 }
 merge(){
-    clipboard=${1:-clipboard}
     sort $CLIP_HISTORY_DIR/*$clipboard* |uniq >/tmp/clipboard
     rm $CLIP_HISTORY_DIR/*$clipboard*
     mv /tmp/$clipboard $CLIP_HISTORY_DIR/$clipboard
 }
 list(){
-    clipboard=${1:-clipboard}
-    limit=$3
+    limit=$1
     if [[ "$limit" -gt 0 ]];then
         tail -n $limit $CLIP_HISTORY_DIR/$clipboard |tac |cut -d" " -f2-
     elif [[ "$limit" -lt 0 ]];then
@@ -95,8 +97,7 @@ list(){
     fi
 }
 get(){
-    clipboard=${1:-clipboard}
-    num=${3:1}
+    num=${1:1}
     if [[ "$num" -gt 0 ]];then
         tail -n $num $CLIP_HISTORY_DIR/$clipboard |head -n1 |cut -d" " -f2-
     elif [[ "$num" -lt 0 ]];then
@@ -111,6 +112,12 @@ displayHelp(){
 displayVersion(){
     echo "0.4.0"
 }
+clipboard=${CLIPBOARD:-clipboard}
+case $1 in
+    --primary|--secondary|--cliboard)
+        clipboard=${1:2}
+        ;;
+esac
 
 case $1 in
     --help | -h)
@@ -137,7 +144,6 @@ case $1 in
         ;;
     select)
         shift
-        clipboard=${1:-clipboard}
         echo -en $(list $* | $CLIP_HISTORY_SHOW_CMD) |xsel -i --$clipboard
-        xsel --clipboard
+        xsel --$clipboard
 esac
