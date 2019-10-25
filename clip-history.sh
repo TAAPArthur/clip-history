@@ -18,13 +18,13 @@
 #%    list     i                    lists the last i element (if i is negative list the first i elements)
 #%    merge                         combine all files matching *clipboard* in $CLIP_HISTORY_DIR into clipboard
 #%    monitor                       listen for changes to the specified clipboards. Clipboards should be space separated
-#%    select                        Using $CLIP_HISTORY_SHOW_CMD, let the user interactively select a history element. This element is printed and added to the corresponding selection
+#%    select [i] [ARGS]             Using $DMENU, let the user interactively select from the last i (defaults to all) elements. The selected element is printed and added to the corresponding selection
 #%    -h, --help                    Print this help
 #%    -v, --version                 Print script information
 #%
 #%Examples:
 #%    ${SCRIPT_NAME} monitor             #start monitoring
-#%    CLIP_HISTORY_SHOW_CMD=rofi ${SCRIPT_NAME} select >> file"             #select text from clipboard history using rofi instead of dmenu and write it to file
+#%    DMENU=rofi ${SCRIPT_NAME} select >> file"             #select text from clipboard history using rofi instead of dmenu and write it to file
 #%    ${SCRIPT_NAME} list 2              #print the 2nd recent clipboard entry
 #%    ${SCRIPT_NAME} list -2             #print the 2nd clipboard entry
 #%    ${SCRIPT_NAME} select clipboard && xsel --clipboard | xvkbd -window $_WIN_ID -file -                #select text from clipboard history and 'type' into the window with id $_WIN_ID
@@ -42,7 +42,7 @@
 set -e
 set -o pipefail
 export CLIP_HISTORY_DIR=${CLIP_HISTORY:-$HOME/.local/share/clip-history}
-export CLIP_HISTORY_SHOW_CMD=${CLIP_HISTORY_SHOW_CMD:-dmenu}
+export DMENU=${DMENU:-dmenu}
 mkdir -p $CLIP_HISTORY_DIR
 clipboard=
 
@@ -168,6 +168,10 @@ case $1 in
         ;;
     select)
         shift
-        echo -en $(list $* | $CLIP_HISTORY_SHOW_CMD) | tr -d '\n' | xsel -i --$clipboard
+        if [[ $1 =~ '^[-+][0-9]+$' ]]; then
+            limit=$1
+            shift
+        fi
+        echo -en $(list $limit | $DMENU $*) | tr -d '\n' | xsel -i --$clipboard
         xsel --$clipboard
 esac
