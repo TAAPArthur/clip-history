@@ -2,13 +2,13 @@
 
 
 pkgname='clip-history'
-pkgver='0.6'
+pkgver='0.8'
 _language='en-US'
 pkgrel=0
 pkgdesc='A clipboard manager that simply keeps a list of everything copied'
 arch=('any')
 license=('MIT')
-depends=('python3' 'xsel' 'python-gobject')
+depends=('xsel')
 md5sums=('SKIP')
 
 source=("git+https://github.com/TAAPArthur/clip-history.git")

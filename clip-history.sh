@@ -41,47 +41,31 @@
 
 set -e
 set -o pipefail
-export CLIP_HISTORY_DIR=${CLIP_HISTORY:-$HOME/.local/share/clip-history}
+
+[ -z "$CLIP_HISTORY_DIR" ] && CLIP_HISTORY_DIR=${XDG_DATA_HOME:-$HOME/.local/share}/clip-history
 export DMENU=${DMENU:-dmenu}
 mkdir -p $CLIP_HISTORY_DIR
 clipboard=
 
+
 monitor(){
-    cat << EOF | python $*
-import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk
-import sys
-import time
+    args=$( ([ -z $* ] && echo $clipboard || echo $*) | tr a-z A-Z)
+    ./clip-monitor $args | while IFS= read -r var; do
+        echo $var
 
-clipboards = (("primary", Gdk.SELECTION_PRIMARY), ("secondary", Gdk.SELECTION_SECONDARY), ("clipboard", Gdk.SELECTION_CLIPBOARD))
-DEFAULT_SELECTION = ["clipboard"]
-lastValue = {}
+        if [ "$var" -eq 1 ] ; then
+            selection="primary"
+        elif [ "$var" -eq 2 ] ; then
+            selection="secondary"
+        else
+            selection="clipboard"
+        fi
 
-
-def onChange(clipboard, fileName):
-    with open('$CLIP_HISTORY_DIR/' + fileName, "a") as f:
-        text = clipboard.wait_for_text()
-        if text:
-            if lastValue.get(clipboard, "") != text:
-                lastValue[clipboard] = text
-                output="{} {}\n".format(int(time.time()), text.encode("unicode_escape").decode("utf-8"))
-                f.write(output)
-                f.flush()
-                print(output,end="")
-
-validClipboards = set()
-for arg in sys.argv[1:]:
-    if arg in validClipboards:
-        validClipboards.add(arg)
-if len(validClipboards) == 0:
-    validClipboards = DEFAULT_SELECTION
-for name, id in clipboards:
-    if name in validClipboards:
-        board = Gtk.Clipboard.get(id)
-        board.connect('owner-change', lambda *args: onChange(board, name))
-Gtk.main()
-EOF
+        echo -en "$(date +'%s') " >> $CLIP_HISTORY_DIR/$selection
+        xsel --$selection -o | tr "\n" "\r" >> $CLIP_HISTORY_DIR/$selection
+        echo >> $CLIP_HISTORY_DIR/$selection
+        tail -n 1 $CLIP_HISTORY_DIR/$selection
+    done
 }
 merge(){
     sort $CLIP_HISTORY_DIR/*$clipboard* |uniq >/tmp/clipboard
@@ -126,12 +110,13 @@ displayHelp(){
     head -${SCRIPT_HEADSIZE:-99} ${0} | grep -e "^#[%+]" | sed -e "s/^#[%+-]//g" -e "s/\${SCRIPT_NAME}/${SCRIPT_NAME}/g" ;
 }
 displayVersion(){
-    echo "0.6.0"
+    echo "0.8.0"
 }
 clipboard=${CLIPBOARD:-clipboard}
 case $1 in
-    --primary|--secondary|--cliboard)
+    --primary|--secondary|--clipboard)
         clipboard=${1:2}
+        shift
         ;;
 esac
 
@@ -172,6 +157,11 @@ case $1 in
             limit=$1
             shift
         fi
-        echo -en $(list $limit | $DMENU $*) | tr -d '\n' | xsel -i --$clipboard
-        xsel --$clipboard
+        list $limit | $DMENU $* | tr "\r" "\n" | xsel -i --$clipboard
+        ;;
+    *)
+        echo "'$*' isn't valid"
+        displayHelp
+        exit 1
+        ;;
 esac
