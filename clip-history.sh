@@ -27,7 +27,7 @@
 #%    DMENU=rofi ${SCRIPT_NAME} select >> file"             #select text from clipboard history using rofi instead of dmenu and write it to file
 #%    ${SCRIPT_NAME} list 2              #print the 2nd recent clipboard entry
 #%    ${SCRIPT_NAME} list -2             #print the 2nd clipboard entry
-#%    ${SCRIPT_NAME} select clipboard && xsel --clipboard | xvkbd -window $_WIN_ID -file -                #select text from clipboard history and 'type' into the window with id $_WIN_ID
+#%    ${SCRIPT_NAME} select clipboard && xclip --selection clipboard | xvkbd -window $_WIN_ID -file -                #select text from clipboard history and 'type' into the window with id $_WIN_ID
 #%
 #================================================================
 #- IMPLEMENTATION
@@ -50,7 +50,7 @@ clipboard=
 
 monitor(){
     args=$( ([ -z $* ] && echo $clipboard || echo $*) | tr a-z A-Z)
-    ./clip-monitor $args | while IFS= read -r var; do
+    clip-monitor $args | while IFS= read -r var; do
         echo $var
 
         if [ "$var" -eq 1 ] ; then
@@ -62,7 +62,7 @@ monitor(){
         fi
 
         echo -en "$(date +'%s') " >> $CLIP_HISTORY_DIR/$selection
-        xsel --$selection -o | tr "\n" "\r" >> $CLIP_HISTORY_DIR/$selection
+        xclip -r -selection $selection -o | tr "\n" "\r" >> $CLIP_HISTORY_DIR/$selection
         echo >> $CLIP_HISTORY_DIR/$selection
         tail -n 1 $CLIP_HISTORY_DIR/$selection
     done
@@ -157,7 +157,7 @@ case $1 in
             limit=$1
             shift
         fi
-        list $limit | $DMENU $* | tr "\r" "\n" | xsel -i --$clipboard
+        list $limit | $DMENU $* | tr "\r" "\n" | xclip -r -i -selection $clipboard
         ;;
     *)
         echo "'$*' isn't valid"

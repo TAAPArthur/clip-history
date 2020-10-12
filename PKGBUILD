@@ -8,7 +8,7 @@ pkgrel=0
 pkgdesc='A clipboard manager that simply keeps a list of everything copied'
 arch=('any')
 license=('MIT')
-depends=('xsel')
+depends=('xclip')
 md5sums=('SKIP')
 
 source=("git+https://github.com/TAAPArthur/clip-history.git")
