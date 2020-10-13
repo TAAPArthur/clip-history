@@ -44,9 +44,49 @@ set -o pipefail
 [ -z "$CLIP_HISTORY_DIR" ] && CLIP_HISTORY_DIR=${XDG_DATA_HOME:-$HOME/.local/share}/clip-history
 export DMENU=${DMENU:-dmenu}
 mkdir -p $CLIP_HISTORY_DIR
-clipboard=
+clipboard=${CLIPBOARD:-clipboard}
+case $1 in
+    --primary|--secondary|--clipboard)
+        clipboard=${1:2}
+        shift
+        ;;
+esac
 
 
+clean(){
+    num=${1:-80}
+    cp $CLIP_HISTORY_DIR/$clipboard /tmp/$clipboard.bk || true
+    entries=$(wc -l $CLIP_HISTORY_DIR/$clipboard | cut -d" " -f1)
+    sed -Ei "/(.{$num,}$|\r.|^$)/d" $CLIP_HISTORY_DIR/$clipboard
+    newEntries=$(wc -l $CLIP_HISTORY_DIR/$clipboard | cut -d" " -f1)
+    echo "removed $((entries - $newEntries)) entries ($entries - $newEntries)"
+}
+dedup(){
+    cp $CLIP_HISTORY_DIR/$clipboard /tmp/$clipboard
+    entries=$(wc -l $CLIP_HISTORY_DIR/$clipboard | cut -d" " -f1)
+    tac $CLIP_HISTORY_DIR/$clipboard | nl -s " " -n rz | sort -k2 -u |sort -r |cut -d" " -f2- > $CLIP_HISTORY_DIR/$clipboard.tmp
+    mv $CLIP_HISTORY_DIR/$clipboard.tmp $CLIP_HISTORY_DIR/$clipboard
+    newEntries=$(wc -l $CLIP_HISTORY_DIR/$clipboard | cut -d" " -f1)
+    echo "removed $((entries - $newEntries)) entries ($entries - $newEntries)"
+}
+get(){
+    num=${1:1}
+    if [[ "$num" -gt 0 ]];then
+        tail -n $num $CLIP_HISTORY_DIR/$clipboard |head -n1
+    elif [[ "$num" -lt 0 ]];then
+        head -n $((-num)) $CLIP_HISTORY_DIR/$clipboard | tail -n1
+    fi
+}
+list(){
+    limit=$1
+    if [[ "$limit" -gt 0 ]];then
+        tail -n $limit $CLIP_HISTORY_DIR/$clipboard |tac
+    elif [[ "$limit" -lt 0 ]];then
+        head -n $((-limit)) $CLIP_HISTORY_DIR/$clipboard | tac
+    else
+        tac $CLIP_HISTORY_DIR/$clipboard
+    fi
+}
 monitor(){
     args=$( ([ -z $* ] && echo $clipboard || echo $*) | tr a-z A-Z)
     clip-monitor $args | while IFS= read -r var; do
@@ -62,40 +102,7 @@ monitor(){
         (xclip -r -selection $selection -o | tr "\n" "\r"; echo) >> $CLIP_HISTORY_DIR/$selection
     done
 }
-dedup(){
-    cp $CLIP_HISTORY_DIR/$clipboard /tmp/$clipboard
-    entries=$(wc -l $CLIP_HISTORY_DIR/$clipboard | cut -d" " -f1)
-    tac $CLIP_HISTORY_DIR/$clipboard | nl -s " " -n rz | sort -k2 -u |sort -r |cut -d" " -f2- > $CLIP_HISTORY_DIR/$clipboard.tmp
-    mv $CLIP_HISTORY_DIR/$clipboard.tmp $CLIP_HISTORY_DIR/$clipboard
-    newEntries=$(wc -l $CLIP_HISTORY_DIR/$clipboard | cut -d" " -f1)
-    echo "removed $((entries - $newEntries)) entries ($entries - $newEntries)"
-}
-list(){
-    limit=$1
-    if [[ "$limit" -gt 0 ]];then
-        tail -n $limit $CLIP_HISTORY_DIR/$clipboard |tac
-    elif [[ "$limit" -lt 0 ]];then
-        head -n $((-limit)) $CLIP_HISTORY_DIR/$clipboard | tac
-    else
-        tac $CLIP_HISTORY_DIR/$clipboard
-    fi
-}
-get(){
-    num=${1:1}
-    if [[ "$num" -gt 0 ]];then
-        tail -n $num $CLIP_HISTORY_DIR/$clipboard |head -n1
-    elif [[ "$num" -lt 0 ]];then
-        head -n $((-num)) $CLIP_HISTORY_DIR/$clipboard | tail -n1
-    fi
-}
-clean(){
-    num=${1:-80}
-    cp $CLIP_HISTORY_DIR/$clipboard /tmp/$clipboard.bk || true
-    entries=$(wc -l $CLIP_HISTORY_DIR/$clipboard | cut -d" " -f1)
-    sed -Ei "/(.{$num,}$|\r.|^$)/d" $CLIP_HISTORY_DIR/$clipboard
-    newEntries=$(wc -l $CLIP_HISTORY_DIR/$clipboard | cut -d" " -f1)
-    echo "removed $((entries - $newEntries)) entries ($entries - $newEntries)"
-}
+
 displayHelp(){
     SCRIPT_HEADSIZE=$(head -200 ${0} |grep -n "^# END_OF_HEADER" | cut -f1 -d:)
     SCRIPT_NAME="$(basename ${0})"
@@ -104,13 +111,6 @@ displayHelp(){
 displayVersion(){
     echo "0.9.0"
 }
-clipboard=${CLIPBOARD:-clipboard}
-case $1 in
-    --primary|--secondary|--clipboard)
-        clipboard=${1:2}
-        shift
-        ;;
-esac
 
 case $1 in
     --help | -h)
@@ -119,9 +119,9 @@ case $1 in
     --version | -v)
         displayVersion
         ;;
-    monitor)
+    clean)
         shift
-        monitor $*
+        clean $*
         ;;
     dedup)
         shift
@@ -131,13 +131,13 @@ case $1 in
         shift
         get $*
         ;;
-    clean)
-        shift
-        clean $*
-        ;;
     list)
         shift
         list $*
+        ;;
+    monitor)
+        shift
+        monitor $*
         ;;
     select)
         shift
