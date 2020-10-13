@@ -13,7 +13,7 @@
 #%Action:
 #%Note: All actions take an option argument specifying which clipboard to use (the default is clipboard)
 #%    dedup                         Removes duplicates by keeping the latest entry
-#%    filter-long [NUM_CHARS]       Removes all entries with more than NUM_CHARS characters
+#%    clean [NUM_CHARS]             Removes all entries with more than NUM_CHARS characters, multi line entires and empty entires
 #%    get      i                    get the element at the given index from the specified clipboard. Index 1 is the most recent and -1 the least recent
 #%    list     i                    lists the last i element (if i is negative list the first i elements)
 #%    monitor                       listen for changes to the specified clipboards. Clipboards should be space separated
@@ -88,10 +88,13 @@ get(){
         head -n $((-num)) $CLIP_HISTORY_DIR/$clipboard | tail -n1
     fi
 }
-filterLong(){
+clean(){
     num=${1:-80}
     cp $CLIP_HISTORY_DIR/$clipboard /tmp/$clipboard.bk || true
-    sed -Ei "/.{$num,}$/d" $CLIP_HISTORY_DIR/$clipboard
+    entries=$(wc -l $CLIP_HISTORY_DIR/$clipboard | cut -d" " -f1)
+    sed -Ei "/(.{$num,}$|\r.|^$)/d" $CLIP_HISTORY_DIR/$clipboard
+    newEntries=$(wc -l $CLIP_HISTORY_DIR/$clipboard | cut -d" " -f1)
+    echo "removed $((entries - $newEntries)) entries ($entries - $newEntries)"
 }
 displayHelp(){
     SCRIPT_HEADSIZE=$(head -200 ${0} |grep -n "^# END_OF_HEADER" | cut -f1 -d:)
@@ -128,9 +131,9 @@ case $1 in
         shift
         get $*
         ;;
-    filter-long)
+    clean)
         shift
-        filterLong $*
+        clean $*
         ;;
     list)
         shift
