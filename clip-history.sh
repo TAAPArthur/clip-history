@@ -16,7 +16,6 @@
 #%    filter-long [NUM_CHARS]       Removes all entries with more than NUM_CHARS characters
 #%    get      i                    get the element at the given index from the specified clipboard. Index 1 is the most recent and -1 the least recent
 #%    list     i                    lists the last i element (if i is negative list the first i elements)
-#%    merge                         combine all files matching *clipboard* in $CLIP_HISTORY_DIR into clipboard
 #%    monitor                       listen for changes to the specified clipboards. Clipboards should be space separated
 #%    select [i] [ARGS]             Using $DMENU, let the user interactively select from the last i (defaults to all) elements. The selected element is printed and added to the corresponding selection
 #%    -h, --help                    Print this help
@@ -60,22 +59,13 @@ monitor(){
         else
             selection="clipboard"
         fi
-
-        echo -en "$(date +'%s') " >> $CLIP_HISTORY_DIR/$selection
-        xclip -r -selection $selection -o | tr "\n" "\r" >> $CLIP_HISTORY_DIR/$selection
-        echo >> $CLIP_HISTORY_DIR/$selection
-        tail -n 1 $CLIP_HISTORY_DIR/$selection
+        (xclip -r -selection $selection -o | tr "\n" "\r"; echo) >> $CLIP_HISTORY_DIR/$selection
     done
-}
-merge(){
-    sort $CLIP_HISTORY_DIR/*$clipboard* |uniq >/tmp/clipboard
-    rm $CLIP_HISTORY_DIR/*$clipboard*
-    mv /tmp/$clipboard $CLIP_HISTORY_DIR/$clipboard
 }
 dedup(){
     cp $CLIP_HISTORY_DIR/$clipboard /tmp/$clipboard
     entries=$(wc -l $CLIP_HISTORY_DIR/$clipboard | cut -d" " -f1)
-    tac $CLIP_HISTORY_DIR/$clipboard | sort -k2 -u |sort > $CLIP_HISTORY_DIR/$clipboard.tmp
+    tac $CLIP_HISTORY_DIR/$clipboard | nl -s " " -n rz | sort -k2 -u |sort -r |cut -d" " -f2- > $CLIP_HISTORY_DIR/$clipboard.tmp
     mv $CLIP_HISTORY_DIR/$clipboard.tmp $CLIP_HISTORY_DIR/$clipboard
     newEntries=$(wc -l $CLIP_HISTORY_DIR/$clipboard | cut -d" " -f1)
     echo "removed $((entries - $newEntries)) entries ($entries - $newEntries)"
@@ -83,26 +73,25 @@ dedup(){
 list(){
     limit=$1
     if [[ "$limit" -gt 0 ]];then
-        tail -n $limit $CLIP_HISTORY_DIR/$clipboard |tac |cut -d" " -f2-
+        tail -n $limit $CLIP_HISTORY_DIR/$clipboard |tac
     elif [[ "$limit" -lt 0 ]];then
-        head -n $((-limit)) $CLIP_HISTORY_DIR/$clipboard | tac|cut -d" " -f2-
+        head -n $((-limit)) $CLIP_HISTORY_DIR/$clipboard | tac
     else
-        tac $CLIP_HISTORY_DIR/$clipboard |cut -d" " -f2-
+        tac $CLIP_HISTORY_DIR/$clipboard
     fi
 }
 get(){
     num=${1:1}
     if [[ "$num" -gt 0 ]];then
-        tail -n $num $CLIP_HISTORY_DIR/$clipboard |head -n1 |cut -d" " -f2-
+        tail -n $num $CLIP_HISTORY_DIR/$clipboard |head -n1
     elif [[ "$num" -lt 0 ]];then
-        head -n $((-num)) $CLIP_HISTORY_DIR/$clipboard | tail -n1 |cut -d" " -f2-
+        head -n $((-num)) $CLIP_HISTORY_DIR/$clipboard | tail -n1
     fi
 }
 filterLong(){
     num=${1:-80}
-    set -xe
-    grep --text -E "^[0-9]* .{,$num}$" $CLIP_HISTORY_DIR/$clipboard
-    sed -Ei "/^[0-9]* .{,$num}$/!d" $CLIP_HISTORY_DIR/$clipboard
+    cp $CLIP_HISTORY_DIR/$clipboard /tmp/$clipboard.bk || true
+    sed -Ei "/.{$num,}$/d" $CLIP_HISTORY_DIR/$clipboard
 }
 displayHelp(){
     SCRIPT_HEADSIZE=$(head -200 ${0} |grep -n "^# END_OF_HEADER" | cut -f1 -d:)
@@ -130,10 +119,6 @@ case $1 in
     monitor)
         shift
         monitor $*
-        ;;
-    merge)
-        shift
-        merge $*
         ;;
     dedup)
         shift
