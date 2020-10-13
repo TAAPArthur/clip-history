@@ -2,7 +2,7 @@
 
 
 pkgname='clip-history'
-pkgver='0.8'
+pkgver='0.9'
 _language='en-US'
 pkgrel=0
 pkgdesc='A clipboard manager that simply keeps a list of everything copied'

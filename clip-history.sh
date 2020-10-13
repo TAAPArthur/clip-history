@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #================================================================
 # HEADER
 #================================================================
@@ -99,7 +99,7 @@ displayHelp(){
     head -${SCRIPT_HEADSIZE:-99} ${0} | grep -e "^#[%+]" | sed -e "s/^#[%+-]//g" -e "s/\${SCRIPT_NAME}/${SCRIPT_NAME}/g" ;
 }
 displayVersion(){
-    echo "0.8.0"
+    echo "0.9.0"
 }
 clipboard=${CLIPBOARD:-clipboard}
 case $1 in
